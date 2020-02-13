@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+# Author Sergey Platonov
+# Built on top of: 
+#   https://github.com/pollev/python_progress_bar and https://github.com/pollev/bash_progress_bar
+
+
 import curses
 import signal
 import random
@@ -7,38 +12,35 @@ import string
 import time
 import colored
 
-# Usage:
-# import progress_bar                           <- Import this module
-# progress_bar.enable_trapping()                <- optional to clean up properly if user presses ctrl-c
-# progress_bar.setup_scroll_area()              <- create empty progress bar
-# progress_bar.draw_progress_bar(10)            <- advance progress bar
-# progress_bar.draw_progress_bar(40)            <- advance progress bar
-# progress_bar.block_progress_bar(45)           <- turns the progress bar yellow to indicate some action is requested from the user
-# progress_bar.draw_progress_bar(90)            <- advance progress bar
-# progress_bar.destroy_scroll_area()            <- remove progress bar
-
-
 # Constants
 CODE_SAVE_CURSOR = "\033[s"
 CODE_RESTORE_CURSOR = "\033[u"
 CODE_CURSOR_IN_SCROLL_AREA = "\033[1A"
 COLOR_FG = '\033[30m'
 GREEN = '\033[42m'
-RED = '\033[41m'
-YELLOW = '\033[43m'
 RESTORE_FG = '\033[39m'
 RESTORE_BG = '\033[49m'
-colors = [196, 202, 208, 214, 220, 226, 154, 118, 82, 46]
+COLORS = [196, 202, 208, 214, 220, 226, 154, 118, 82, 46]
 
-CURRENT_SWIRL = 1
-
+# Parameters
+COLOR_ENABLED = False
+DYNAMIC_ENABLED = False
 
 # Variables
+CURRENT_SWIRL = 1
 TRAPPING_ENABLED = False
 TRAP_SET = False
 original_sigint_handler = None
 
-def setup_scroll_area():
+def init(color=True, dynamic=False):
+    global TRAPPING_ENABLED
+    global COLOR_ENABLED
+    global DYNAMIC_ENABLED
+
+    TRAPPING_ENABLED = True
+    COLOR_ENABLED = color
+    DYNAMIC_ENABLED = dynamic
+
     # Setup curses support (to get information about the terminal we are running in)
     curses.setupterm()
 
@@ -63,7 +65,7 @@ def setup_scroll_area():
     draw_progress_bar(0)
 
 
-def destroy_scroll_area():
+def destroy():
     lines = curses.tigetnum("lines")
     # Save cursor
     __print_control_code(CODE_SAVE_CURSOR)
@@ -105,8 +107,6 @@ def draw_progress_bar(percentage, delay=None):
     if delay: time.sleep(delay)
 
 
-
-
 def __clear_progress_bar():
     lines = curses.tigetnum("lines")
     # Save cursor
@@ -130,38 +130,28 @@ def getSwirl():
     return sw
 
 def getColor(percentage):
-    global colors
     index = percentage // 10
-    return colors[index]
+    return COLORS[index]
 
 def __print_bar_text(percentage):
     cols = curses.tigetnum("cols")
     bar_size = cols - 21 # 17 before
 
-    sw = getSwirl()
+    # Config matching
+    color = f"{COLOR_FG}{colored.bg(getColor(percentage)) if COLOR_ENABLED else GREEN}"
 
-
-    color = colored.bg(getColor(percentage))
-
-    # COLOR_BG = YELLOW
-    # if percentage < 33: COLOR_BG = RED
-    # elif percentage > 66: COLOR_BG = GREEN
-
-    color = f"{COLOR_FG}{color}"
 
     # Prepare progress bar
     complete_size = (bar_size * percentage) / 100
     remainder_size = bar_size - complete_size
-    progress_bar = f"[{sw}] [{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{'.' * int(remainder_size)}]" # for swirlie aside
-    # progress_bar = f"[{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{sw * int(remainder_size)}]" # for swirlies inside
+    sw = getSwirl()
+
+    progress_bar = \
+            f"[{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{sw * int(remainder_size)}]" if DYNAMIC_ENABLED \
+        else f"[{sw}] [{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{'.' * int(remainder_size)}]"
 
     # Print progress bar
     __print_control_code(f" Progress {percentage}% {progress_bar}")
-
-
-def enable_trapping():
-    global TRAPPING_ENABLED
-    TRAPPING_ENABLED = True
 
 
 def __trap_on_interrupt():
@@ -174,7 +164,7 @@ def __trap_on_interrupt():
 
 
 def __cleanup_on_interrupt(sig, frame):
-    destroy_scroll_area()
+    destroy()
     raise KeyboardInterrupt
 
 
@@ -189,30 +179,36 @@ def __print_control_code(code):
 
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # TEST
 
     def random_string(string_length=30):
         letters = string.ascii_lowercase
         return ''.join(random.choice(letters) for i in range(string_length))
 
     def generate_some_output_and_sleep():
-        # print(random_string(), end="\r")
         print(random_string())
 
 
-    # Make sure that the progress bar is cleaned up when user presses ctrl+c
-    enable_trapping()
-    # Create progress bar
-    setup_scroll_area()
+    init(color=False, dynamic=False)
 
-    maxval = 10000
+    percentage = 0
+    maxval = 500
     for i in range(maxval):
 
-        percentage = int(float(i)/float(maxval) * 100.0)
+        percentage = int(float(i)/float(maxval) * 50.0)
         
         generate_some_output_and_sleep()
 
-        draw_progress_bar(percentage, 0.001)
-    destroy_scroll_area()
+        draw_progress_bar(percentage, 0.002)
+    
+    for i in range(maxval):
+
+        percentage2 = percentage + int(float(i)/float(maxval) * 50.0)
+        
+        generate_some_output_and_sleep()
+
+        draw_progress_bar(percentage2, 0.01)
+
+    destroy()
 
 
