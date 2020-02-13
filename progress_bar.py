@@ -5,6 +5,7 @@ import signal
 import random
 import string
 import time
+import colored
 
 # Usage:
 # import progress_bar                           <- Import this module
@@ -27,6 +28,7 @@ RED = '\033[41m'
 YELLOW = '\033[43m'
 RESTORE_FG = '\033[39m'
 RESTORE_BG = '\033[49m'
+colors = [196, 202, 208, 214, 220, 226, 154, 118, 82, 46]
 
 CURRENT_SWIRL = 1
 
@@ -127,6 +129,10 @@ def getSwirl():
     CURRENT_SWIRL = (CURRENT_SWIRL + 1) % 5
     return sw
 
+def getColor(percentage):
+    global colors
+    index = percentage // 10
+    return colors[index]
 
 def __print_bar_text(percentage):
     cols = curses.tigetnum("cols")
@@ -135,16 +141,19 @@ def __print_bar_text(percentage):
     sw = getSwirl()
 
 
-    COLOR_BG = YELLOW
-    if percentage < 33: COLOR_BG = RED
-    elif percentage > 66: COLOR_BG = GREEN
+    color = colored.bg(getColor(percentage))
 
-    color = f"{COLOR_FG}{COLOR_BG}"
+    # COLOR_BG = YELLOW
+    # if percentage < 33: COLOR_BG = RED
+    # elif percentage > 66: COLOR_BG = GREEN
+
+    color = f"{COLOR_FG}{color}"
 
     # Prepare progress bar
     complete_size = (bar_size * percentage) / 100
     remainder_size = bar_size - complete_size
-    progress_bar = f"[{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{sw * int(remainder_size)}]"
+    progress_bar = f"[{sw}] [{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{'.' * int(remainder_size)}]" # for swirlie aside
+    # progress_bar = f"[{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{sw * int(remainder_size)}]" # for swirlies inside
 
     # Print progress bar
     __print_control_code(f" Progress {percentage}% {progress_bar}")
@@ -196,12 +205,13 @@ if __name__ == '__main__':
     # Create progress bar
     setup_scroll_area()
 
-    maxval= 5000
+    maxval = 10000
     for i in range(maxval):
 
         percentage = int(float(i)/float(maxval) * 100.0)
         
         generate_some_output_and_sleep()
+
         draw_progress_bar(percentage, 0.001)
     destroy_scroll_area()
 
