@@ -21,10 +21,19 @@ GREEN = '\033[42m'
 RESTORE_FG = '\033[39m'
 RESTORE_BG = '\033[49m'
 COLORS = [196, 202, 208, 214, 220, 226, 154, 118, 82, 46]
+SPINNERS = [
+    "\|/—",
+    "←↖↑↗→↘↓↙",
+    "▁▂▃▄▅▆▇█▇▆▅▄▃▁",
+    "▉▊▋▌▍▎▏▎▍▌▋▊▉",
+    "◢◣◤◥",
+    "◐◓◑◒"
+]
 
 # Parameters
 COLOR_ENABLED = False
 DYNAMIC_ENABLED = False
+SPINNER_TYPE = 0
 
 # Variables
 CURRENT_SWIRL = 1
@@ -32,14 +41,16 @@ TRAPPING_ENABLED = False
 TRAP_SET = False
 original_sigint_handler = None
 
-def init(color=True, dynamic=False):
+def init(color=True, dynamic=False, spinner=0):
     global TRAPPING_ENABLED
     global COLOR_ENABLED
     global DYNAMIC_ENABLED
+    global SPINNER_TYPE
 
     TRAPPING_ENABLED = True
     COLOR_ENABLED = color
     DYNAMIC_ENABLED = dynamic
+    SPINNER_TYPE = spinner
 
     # Setup curses support (to get information about the terminal we are running in)
     curses.setupterm()
@@ -124,9 +135,14 @@ def __clear_progress_bar():
 
 def getSwirl():
     global CURRENT_SWIRL
-    swirlies = "\|/-—"
-    sw = swirlies[CURRENT_SWIRL]
-    CURRENT_SWIRL = (CURRENT_SWIRL + 1) % 5
+
+    swirlies = SPINNERS[SPINNER_TYPE]
+    quantity = len(swirlies)
+
+    sw = (swirlies[CURRENT_SWIRL] + swirlies[(CURRENT_SWIRL+1) % quantity] + swirlies[(CURRENT_SWIRL+2) % quantity]) if SPINNER_TYPE == 2 \
+        else swirlies[CURRENT_SWIRL]
+
+    CURRENT_SWIRL = (CURRENT_SWIRL + 1) % quantity
     return sw
 
 def getColor(percentage):
@@ -135,7 +151,7 @@ def getColor(percentage):
 
 def __print_bar_text(percentage):
     cols = curses.tigetnum("cols")
-    bar_size = cols - 21 # 17 before
+    bar_size = cols - 23 # 17 before
 
     # Config matching
     color = f"{COLOR_FG}{colored.bg(getColor(percentage)) if COLOR_ENABLED else GREEN}"
@@ -151,7 +167,7 @@ def __print_bar_text(percentage):
         else f"[{sw}] [{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{'.' * int(remainder_size)}]"
 
     # Print progress bar
-    __print_control_code(f" Progress {percentage}% {progress_bar}")
+    __print_control_code(f" Progress {str(percentage).zfill(2)}% {progress_bar}")
 
 
 def __trap_on_interrupt():
@@ -189,17 +205,17 @@ if __name__ == '__main__': # TEST
         print(random_string())
 
 
-    init(color=False, dynamic=False)
+    init(color=True, dynamic=False, spinner=4)
 
     percentage = 0
-    maxval = 500
+    maxval = 100
     for i in range(maxval):
 
         percentage = int(float(i)/float(maxval) * 50.0)
         
         generate_some_output_and_sleep()
 
-        draw_progress_bar(percentage, 0.002)
+        draw_progress_bar(percentage, 0.1)
     
     for i in range(maxval):
 

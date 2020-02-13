@@ -6,6 +6,13 @@ ___
 * init(), params:
     * ColorTransition (bool) (optional) 
     * isMoving (bool) (optional)
+    * spinnerType (int, 0-5) (optional)
+        * 0) | /  — \
+        * 1) ←↖↑↗→↘↓↙
+        * 2) ▁▂▃▄▅▆▇█▇▆▅▄▃▁
+        * 3) ▉▊▋▌▍▎▏▎▍▌▋▊▉
+        * 4) ◢◣◤◥
+        * 5) ◐◓◑◒
 
 * draw_progress_bar(), params:
     * percentage (int)
