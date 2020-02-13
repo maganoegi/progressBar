@@ -1,4 +1,4 @@
-# Python APT-like progress bar
+# Python Progress Bar - apt style
 #### Built on top of: 
 * https://github.com/pollev/python_progress_bar and 
 * https://github.com/pollev/bash_progress_bar
