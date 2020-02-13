@@ -4,9 +4,9 @@
 ___
 ## How To:
 * init(), params:
-    * ColorTransition (bool) (optional) 
-    * isMoving (bool) (optional)
-    * spinnerType (int, 0-7) (optional)
+    * ColorTransition (bool)
+    * isMoving (bool)
+    * spinnerType (int, 0-7)
         * | /  — \
         * ← ↖ ↑ ↗ → ↘ ↓ ↙
         * ▁▂▃▄▅▆▇█▇▆▅▄▃▁
@@ -18,7 +18,8 @@ ___
 
 * draw_progress_bar(), params:
     * percentage (int)
-    * delay (float) (optional)
+    * context (string) -> displays maximum 10 characters
+    * delay (float)
 * destroy() (DONT FORGET)
 
 ## Dependencies
