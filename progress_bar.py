@@ -4,6 +4,7 @@
 # Built on top of: 
 #   https://github.com/pollev/python_progress_bar and https://github.com/pollev/bash_progress_bar
 
+# byzanz-record --duration=9 --delay=2  --x=0 --width=950 --height=550 preview.gif
 
 import curses
 import signal
@@ -214,19 +215,19 @@ if __name__ == '__main__': # TEST
         return ''.join(random.choice(letters) for i in range(string_length))
 
     def generate_some_output_and_sleep():
-        print(random_string(), end="\r")
+        print(random_string())
 
 
     init(color=True, dynamic=False, spinner=7, empty=True)
 
-    maxval = 1000
+    maxval = 100
     for i in range(maxval):
 
         percentage = int(float(i)/float(maxval) * 100.0)
         
-        generate_some_output_and_sleep()
+        print(random_string(), end="\r")
 
-        draw_progress_bar(percentage, "first", 0.05)
+        draw_progress_bar(percentage, "encrypt", 0.05)
 
     destroy()
 
@@ -236,9 +237,9 @@ if __name__ == '__main__': # TEST
 
         percentage = int(float(i)/float(maxval) * 100.0)
         
-        generate_some_output_and_sleep()
+        print(random_string())
 
-        draw_progress_bar(percentage, "second", 0.05)
+        draw_progress_bar(percentage, "decrypt", 0.05)
 
     destroy()
 

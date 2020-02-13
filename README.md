@@ -28,3 +28,6 @@ ___
 * string
 * time
 * colored
+
+## Demo
+![Alt text](./preview.gif?raw=true "a little preview")
