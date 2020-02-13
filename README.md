@@ -1,6 +1,6 @@
 # Python APT-like progress bar
 ## Built on top of: https://github.com/pollev/python_progress_bar and https://github.com/pollev/bash_progress_bar
-## Inspired by: tqdm library not being worthy of Python
+## Inspired by: wanting to print things while seeing a bar
 ___
 ## How To:
 * init(), params:
