@@ -27,12 +27,15 @@ SPINNERS = [
     "▁▂▃▄▅▆▇█▇▆▅▄▃▁",
     "▉▊▋▌▍▎▏▎▍▌▋▊▉",
     "◢◣◤◥",
-    "◐◓◑◒"
+    "◐◓◑◒",
+    "▙▛▜▟",
+    "◰◱◲◳"
 ]
 
 # Parameters
 COLOR_ENABLED = False
 DYNAMIC_ENABLED = False
+EMPTY_BAR = False
 SPINNER_TYPE = 0
 
 # Variables
@@ -41,13 +44,15 @@ TRAPPING_ENABLED = False
 TRAP_SET = False
 original_sigint_handler = None
 
-def init(color=True, dynamic=False, spinner=0):
+def init(color=True, dynamic=False, spinner=0, empty=False):
     global TRAPPING_ENABLED
     global COLOR_ENABLED
     global DYNAMIC_ENABLED
     global SPINNER_TYPE
+    global EMPTY_BAR
 
     TRAPPING_ENABLED = True
+    EMPTY_BAR = empty
     COLOR_ENABLED = color
     DYNAMIC_ENABLED = dynamic
     SPINNER_TYPE = spinner
@@ -98,7 +103,7 @@ def destroy():
         signal.signal(signal.SIGINT, original_sigint_handler)
 
 
-def draw_progress_bar(percentage, delay=None):
+def draw_progress_bar(percentage, context="", delay=None):
     lines = curses.tigetnum("lines")
     # Save cursor
     __print_control_code(CODE_SAVE_CURSOR)
@@ -110,7 +115,7 @@ def draw_progress_bar(percentage, delay=None):
     __tput("el")
 
     # Draw progress bar
-    __print_bar_text(percentage)
+    __print_bar_text(percentage, context)
 
     # Restore cursor position
     __print_control_code(CODE_RESTORE_CURSOR)
@@ -149,25 +154,32 @@ def getColor(percentage):
     index = percentage // 10
     return COLORS[index]
 
-def __print_bar_text(percentage):
+def formatContext(context):
+    length = len(context)
+    return context[:10] if length > 9 else (context + (" " * (10 - length)))
+
+def __print_bar_text(percentage, context):
     cols = curses.tigetnum("cols")
-    bar_size = cols - 23 # 17 before
+    bar_size = cols - 21 # 17 before
 
     # Config matching
     color = f"{COLOR_FG}{colored.bg(getColor(percentage)) if COLOR_ENABLED else GREEN}"
 
-
-    # Prepare progress bar
+    # Prepare the progress bar values
     complete_size = (bar_size * percentage) / 100
     remainder_size = bar_size - complete_size
     sw = getSwirl()
+    _pre = "#" if not EMPTY_BAR else " "
+    _post = (sw if DYNAMIC_ENABLED else ".") if not EMPTY_BAR else " "
+    _bracketL, _bracketR = ("[", "]") if SPINNER_TYPE != 7 else ("", "")
+    _context = formatContext(context) if len(context) > 0 else "Progress"
 
-    progress_bar = \
-            f"[{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{sw * int(remainder_size)}]" if DYNAMIC_ENABLED \
-        else f"[{sw}] [{color}{'#' * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{'.' * int(remainder_size)}]"
+
+    # Prepare progress bar
+    progress_bar = f"{_bracketL}{sw}{_bracketR} [{color}{_pre * int(complete_size)}{RESTORE_FG}{RESTORE_BG}{_post * int(remainder_size)}]"
 
     # Print progress bar
-    __print_control_code(f" Progress {str(percentage).zfill(2)}% {progress_bar}")
+    __print_control_code(f" {_context} {str(percentage).zfill(2)}% {progress_bar}")
 
 
 def __trap_on_interrupt():
@@ -202,28 +214,31 @@ if __name__ == '__main__': # TEST
         return ''.join(random.choice(letters) for i in range(string_length))
 
     def generate_some_output_and_sleep():
-        print(random_string())
+        print(random_string(), end="\r")
 
 
-    init(color=True, dynamic=False, spinner=4)
+    init(color=True, dynamic=False, spinner=7, empty=True)
 
-    percentage = 0
-    maxval = 100
+    maxval = 1000
     for i in range(maxval):
 
-        percentage = int(float(i)/float(maxval) * 50.0)
+        percentage = int(float(i)/float(maxval) * 100.0)
         
         generate_some_output_and_sleep()
 
-        draw_progress_bar(percentage, 0.1)
+        draw_progress_bar(percentage, "first", 0.05)
+
+    destroy()
+
+    init(color=False, dynamic=False, spinner=4, empty=False)
     
     for i in range(maxval):
 
-        percentage2 = percentage + int(float(i)/float(maxval) * 50.0)
+        percentage = int(float(i)/float(maxval) * 100.0)
         
         generate_some_output_and_sleep()
 
-        draw_progress_bar(percentage2, 0.01)
+        draw_progress_bar(percentage, "second", 0.05)
 
     destroy()
 
