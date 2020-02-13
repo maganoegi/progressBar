@@ -25,8 +25,6 @@ ___
 ## Dependencies
 * curses
 * signal
-* random
-* string
 * time
 * colored
 
