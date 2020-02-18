@@ -124,6 +124,10 @@ def draw_progress_bar(percentage, context="", delay=None):
     if delay: time.sleep(delay)
 
 
+def getPercentage(i, max, maxPercent):
+    return int(float(i)/float(max) * float(maxPercent))
+
+
 def __clear_progress_bar():
     lines = curses.tigetnum("lines")
     # Save cursor
@@ -161,7 +165,7 @@ def formatContext(context):
 
 def __print_bar_text(percentage, context):
     cols = curses.tigetnum("cols")
-    bar_size = cols - 21 # 17 before
+    bar_size = cols - 24 # 17 before
 
     # Config matching
     color = f"{COLOR_FG}{colored.bg(getColor(percentage)) if COLOR_ENABLED else GREEN}"
@@ -242,5 +246,6 @@ if __name__ == '__main__': # TEST
         draw_progress_bar(percentage, "decrypt", 0.05)
 
     destroy()
+
 
 
