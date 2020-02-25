@@ -155,6 +155,9 @@ def getSwirl():
     CURRENT_SWIRL = (CURRENT_SWIRL + 1) % quantity
     return sw
 
+def getPercentage(i, max, maxPercent):
+    return int(float(i)/float(max) * float(maxPercent))
+
 def getColor(percentage):
     index = percentage // 10
     return COLORS[index]
@@ -222,7 +225,7 @@ if __name__ == '__main__': # TEST
         print(random_string())
 
 
-    init(color=True, dynamic=False, spinner=7, empty=True)
+    init(color=True, dynamic=True, spinner=0, empty=False)
 
     maxval = 100
     for i in range(maxval):
